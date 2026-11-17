@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lorry Business Manager</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="/vendor/chart.js/chart.umd.js"></script>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">🚚 <span>Lorry Manager</span></div>
+  <nav id="nav">
+    <a data-page="dashboard" class="active">📊 Dashboard</a>
+    <a data-page="loads">📦 Daily Loads</a>
+    <a data-page="weekly">🗓️ Weekly Report</a>
+    <a data-page="monthly">📈 Monthly Profit</a>
+    <a data-page="expenses">💸 Expenses</a>
+    <a data-page="vehicles">🚛 Vehicles</a>
+    <a data-page="drivers">👷 Drivers</a>
+    <a data-page="settings">⚙️ Quarries, Materials &amp; Rates</a>
+  </nav>
+  <div class="sidebar-foot">Supplying M Sand · 12 mm · 20 mm</div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <h1 id="page-title">Dashboard</h1>
+    <button class="btn primary" id="quick-add">+ Add Load</button>
+  </header>
+
+  <!-- DASHBOARD -->
+  <section class="page" id="page-dashboard">
+    <div class="kpis" id="kpis"></div>
+    <div class="grid2">
+      <div class="card"><h3>Loads per week (last 8 weeks)</h3><canvas id="ch-weeks"></canvas></div>
+      <div class="card"><h3>Revenue vs Net profit (last 6 months)</h3><canvas id="ch-months"></canvas></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>This month by material</h3><div id="dash-material"></div></div>
+      <div class="card"><h3>This month by vehicle</h3><div id="dash-vehicle"></div></div>
+    </div>
+    <div class="card"><h3>Recent loads</h3><div id="dash-recent"></div></div>
+  </section>
+
+  <!-- LOADS -->
+  <section class="page hidden" id="page-loads">
+    <div class="card filters">
+      <label>From <input type="date" id="lf-from"></label>
+      <label>To <input type="date" id="lf-to"></label>
+      <label>Vehicle <select id="lf-vehicle"></select></label>
+      <label>Driver <select id="lf-driver"></select></label>
+      <label>Material <select id="lf-material"></select></label>
+      <div class="quick">
+        <button class="btn sm" data-range="today">Today</button>
+        <button class="btn sm" data-range="week">This week</button>
+        <button class="btn sm" data-range="month">This month</button>
+      </div>
+      <button class="btn" id="lf-csv">⬇ Export CSV</button>
+    </div>
+    <div class="kpis small" id="loads-totals"></div>
+    <div class="card"><div id="loads-table"></div></div>
+  </section>
+
+  <!-- WEEKLY -->
+  <section class="page hidden" id="page-weekly">
+    <div class="card filters">
+      <label>From <input type="date" id="wf-from"></label>
+      <label>To <input type="date" id="wf-to"></label>
+      <button class="btn" id="wf-go">Show</button>
+    </div>
+    <div class="kpis small" id="weekly-totals"></div>
+    <div class="card"><h3>Weekly summary</h3><div id="weekly-table"></div></div>
+    <div class="card"><h3>Day-by-day loads</h3><canvas id="ch-days" height="90"></canvas></div>
+  </section>
+
+  <!-- MONTHLY -->
+  <section class="page hidden" id="page-monthly">
+    <div class="card filters">
+      <label>Year <select id="mf-year"></select></label>
+    </div>
+    <div class="kpis small" id="monthly-totals"></div>
+    <div class="card"><h3>Profit ratio per month</h3><canvas id="ch-ratio" height="90"></canvas></div>
+    <div class="card"><h3>Monthly profit &amp; loss</h3><div id="monthly-table"></div></div>
+    <div class="card filters">
+      <label>Breakdown for month <input type="month" id="bf-month"></label>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>By vehicle</h3><div id="bd-vehicle"></div></div>
+      <div class="card"><h3>By driver</h3><div id="bd-driver"></div></div>
+      <div class="card"><h3>By material</h3><div id="bd-material"></div></div>
+      <div class="card"><h3>By quarry</h3><div id="bd-quarry"></div></div>
+    </div>
+  </section>
+
+  <!-- EXPENSES -->
+  <section class="page hidden" id="page-expenses">
+    <div class="card filters">
+      <label>From <input type="date" id="ef-from"></label>
+      <label>To <input type="date" id="ef-to"></label>
+      <button class="btn primary" id="add-expense">+ Add Expense</button>
+    </div>
+    <p class="hint">Use this for costs not tied to a single trip — salaries, EMI, repairs, tyres, insurance. They are deducted from monthly profit.</p>
+    <div class="card"><div id="expenses-table"></div></div>
+  </section>
+
+  <!-- VEHICLES -->
+  <section class="page hidden" id="page-vehicles">
+    <div class="toolbar"><button class="btn primary" id="add-vehicle">+ Add Vehicle</button></div>
+    <div class="cards" id="vehicles-list"></div>
+  </section>
+
+  <!-- DRIVERS -->
+  <section class="page hidden" id="page-drivers">
+    <div class="toolbar"><button class="btn primary" id="add-driver">+ Add Driver</button></div>
+    <div class="cards" id="drivers-list"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="page hidden" id="page-settings">
+    <div class="card">
+      <div class="card-head"><h3>Materials &amp; Rates (per unit)</h3><button class="btn sm primary" id="add-material">+ Material</button></div>
+      <p class="hint">Purchase rate = what you pay the quarry. Sale rate = what you charge the customer. These auto-fill each new load (you can still change them per load).</p>
+      <div id="materials-table"></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Quarries (suppliers)</h3><button class="btn sm primary" id="add-quarry">+ Quarry</button></div><div id="quarries-table"></div></div>
+      <div class="card"><div class="card-head"><h3>Customers</h3><button class="btn sm primary" id="add-customer">+ Customer</button></div><div id="customers-table"></div></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="modal">
+  <form id="modal-form" method="dialog">
+    <h2 id="modal-title"></h2>
+    <div id="modal-body" class="form-grid"></div>
+    <div id="modal-preview"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="modal-cancel">Cancel</button>
+      <button type="submit" class="btn primary" id="modal-save">Save</button>
+    </div>
+  </form>
+</dialog>
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
